@@ -18,13 +18,37 @@ permissions:
 jobs:
   frogbot-scan:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        branch: ["master"]
+    timeout-minutes: 15
     steps:
-      - uses: jfrog/frogbot@v2
+      - name: Log Runner Resources (Start)
+        run: |
+          echo "=== Runner Resource Information ==="
+          echo "Runner OS: $RUNNER_OS"
+          echo "Runner Architecture: $RUNNER_ARCH"
+          echo "Workflow started at: $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+          echo "CPU Information:"
+          nproc
+          echo "Memory Information:"
+          free -h
+          echo "Disk Space:"
+          df -h
+          echo "===================================="
+
+      - name: Run Frogbot Security Scan
+        uses: jfrog/frogbot@v2
         env:
           JF_URL: ${{ secrets.JF_URL }}
           JF_ACCESS_TOKEN: ${{ secrets.JF_ACCESS_TOKEN }}
           JF_GIT_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          JF_GIT_BASE_BRANCH: ${{ matrix.branch }}
+          JF_GIT_BASE_BRANCH: master
+
+      - name: Log Runner Resources (End)
+        if: always()
+        run: |
+          echo "=== Final Resource Usage ==="
+          echo "Workflow ended at: $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+          echo "Memory Usage:"
+          free -h
+          echo "Disk Space:"
+          df -h
+          echo "============================"
