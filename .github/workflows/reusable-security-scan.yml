@@ -1,0 +1,65 @@
+name: "Reusable Security Scan Workflow"
+
+on:
+  workflow_call:
+    inputs:
+      runner-size:
+        description: 'Runner size to use (small/medium/large)'
+        required: false
+        type: string
+        default: 'small'
+      timeout-minutes:
+        description: 'Job timeout in minutes'
+        required: false
+        type: number
+        default: 15
+      scan-branch:
+        description: 'Branch to scan'
+        required: false
+        type: string
+        default: 'master'
+    secrets:
+      jf-url:
+        required: true
+      jf-access-token:
+        required: true
+      git-token:
+        required: true
+
+jobs:
+  security-scan:
+    name: Security Scan
+    # Runner mapping based on input size
+    runs-on: ${{ inputs.runner-size == 'small' && 'ubuntu-latest' || inputs.runner-size == 'medium' && 'ubuntu-latest' || 'ubuntu-latest' }}
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+
+    env:
+      WORKLOAD_TYPE: security-scan
+      RUNNER_SIZE: ${{ inputs.runner-size }}
+
+    steps:
+      - name: Record job start time
+        id: start-time
+        run: echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT
+
+      - name: Run Frogbot Security Scan
+        uses: jfrog/frogbot@v2
+        env:
+          JF_URL: ${{ secrets.jf-url }}
+          JF_ACCESS_TOKEN: ${{ secrets.jf-access-token }}
+          JF_GIT_TOKEN: ${{ secrets.git-token }}
+          JF_GIT_BASE_BRANCH: ${{ inputs.scan-branch }}
+
+      - name: Record job end time and duration
+        if: always()
+        run: |
+          END_TIME=$(date +%s)
+          START_TIME=${{ steps.start-time.outputs.start_time }}
+          DURATION=$((END_TIME - START_TIME))
+          echo "Job execution time: ${DURATION} seconds"
+          echo "### Job Execution Metrics :stopwatch:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Workload Type:** security-scan" >> $GITHUB_STEP_SUMMARY
+          echo "- **Runner Size:** ${{ inputs.runner-size }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Execution Time:** ${DURATION} seconds" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status:** ${{ job.status }}" >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,89 @@
+# Runner Configuration Matrix
+# This file defines standardized runner configurations for different workload types
+# Referenced in RUNNER_GUIDELINES.md
+
+runner_types:
+  small:
+    label: ubuntu-latest
+    description: 2-core, 7GB RAM - For lightweight tasks
+    timeout_default: 15
+    use_cases:
+      - linting
+      - security-scanning
+      - simple-tests
+      - documentation
+
+  medium:
+    label: ubuntu-latest
+    description: 2-core, 7GB RAM - For moderate tasks
+    timeout_default: 30
+    use_cases:
+      - builds
+      - integration-tests
+      - docker-builds-simple
+
+  large:
+    label: ubuntu-latest
+    description: For self-hosted or larger GitHub runners when available
+    timeout_default: 60
+    use_cases:
+      - complex-builds
+      - extensive-tests
+      - multi-platform-builds
+      - performance-tests
+
+workload_categories:
+  security-scan:
+    recommended_size: small
+    recommended_timeout: 15
+    cost_tag: workload:security-scan
+    examples:
+      - frogbot
+      - snyk
+      - dependabot
+      - codeql
+
+  build:
+    recommended_size: medium
+    recommended_timeout: 30
+    cost_tag: workload:build
+    examples:
+      - python-build
+      - node-build
+      - go-build
+      - docker-build
+
+  test:
+    recommended_size: small
+    recommended_timeout: 20
+    cost_tag: workload:test
+    examples:
+      - unit-tests
+      - integration-tests
+      - e2e-tests
+
+  deploy:
+    recommended_size: small
+    recommended_timeout: 20
+    cost_tag: workload:deploy
+    examples:
+      - deploy-staging
+      - deploy-production
+      - publish-artifacts
+
+  utility:
+    recommended_size: small
+    recommended_timeout: 10
+    cost_tag: workload:utility
+    examples:
+      - lint
+      - format-check
+      - dependency-update
+
+optimization_features:
+  - execution-time-tracking
+  - timeout-configuration
+  - cost-monitoring-tags
+  - workload-categorization
+  - runner-right-sizing
+  - caching-strategies
